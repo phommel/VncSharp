@@ -15,10 +15,9 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.IO.Compression;
+using VncSharp.PlatformIndependentDrawing;
 
 namespace VncSharp.Encodings
 {
@@ -33,7 +32,7 @@ namespace VncSharp.Encodings
 		private int[] palette = new int[128];
 		private int[] tileBuffer = new int[TILE_WIDTH * TILE_HEIGHT];
 
-		public ZrleRectangle(RfbProtocol rfb, Framebuffer framebuffer, Rectangle rectangle)
+		public ZrleRectangle(RfbProtocol rfb, Framebuffer framebuffer, VncRectangle rectangle)
 			: base(rfb, framebuffer, rectangle, RfbProtocol.ZRLE_ENCODING)
 		{
 		}
@@ -62,28 +61,28 @@ namespace VncSharp.Encodings
 
 					if (paletteSize == 1) {
 						// Solid tile
-						FillRectangle(new Rectangle(tx, ty, tw, th), palette[0]);
+						FillRectangle(new VncRectangle(tx, ty, tw, th), palette[0]);
 						continue;
 					}
 
 					if (!isRLE) {
 						if (paletteSize == 0) {
 							// Raw pixel data
-							FillRectangle(new Rectangle(tx, ty, tw, th));
+							FillRectangle(new VncRectangle(tx, ty, tw, th));
 						} else {
 							// Packed palette
 							ReadZrlePackedPixels(tw, th, palette, paletteSize, tileBuffer);
-							FillRectangle(new Rectangle(tx, ty, tw, th), tileBuffer);
+							FillRectangle(new VncRectangle(tx, ty, tw, th), tileBuffer);
 						}
 					} else {
 						if (paletteSize == 0) {
 							// Plain RLE
 							ReadZrlePlainRLEPixels(tw, th, tileBuffer);
-							FillRectangle(new Rectangle(tx, ty, tw, th), tileBuffer);
+							FillRectangle(new VncRectangle(tx, ty, tw, th), tileBuffer);
 						} else {
 							// Packed RLE palette
 							ReadZrlePackedRLEPixels(tx, ty, tw, th, palette, tileBuffer);
-							FillRectangle(new Rectangle(tx, ty, tw, th), tileBuffer);
+							FillRectangle(new VncRectangle(tx, ty, tw, th), tileBuffer);
 						}
 					}
 				}

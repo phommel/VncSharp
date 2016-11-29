@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Drawing;
+using VncSharp.PlatformIndependentDrawing;
 
 namespace VncSharp
 {
@@ -93,9 +93,9 @@ namespace VncSharp
 		/// <summary>
 		/// Gets a Rectangle object constructed out of the Width and Height for the Framebuffer.  Used as a convenience in other classes.
 		/// </summary>
-		public Rectangle Rectangle {
+		public VncRectangle Rectangle {
 			get {
-				return new Rectangle(0, 0, width, height);
+				return new VncRectangle(0, 0, width, height);
 			}
 		}
 

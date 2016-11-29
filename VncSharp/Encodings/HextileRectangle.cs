@@ -15,8 +15,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
+using VncSharp.PlatformIndependentDrawing;
 
 namespace VncSharp.Encodings
 {
@@ -31,7 +30,7 @@ namespace VncSharp.Encodings
 		private const int ANY_SUBRECTS			= 0x08;
 		private const int SUBRECTS_COLOURED		= 0x10;
 
-		public HextileRectangle(RfbProtocol rfb, Framebuffer framebuffer, Rectangle rectangle)
+		public HextileRectangle(RfbProtocol rfb, Framebuffer framebuffer, VncRectangle rectangle)
 			: base(rfb, framebuffer, rectangle, RfbProtocol.HEXTILE_ENCODING) 
 		{
 		}
@@ -74,14 +73,14 @@ namespace VncSharp.Encodings
 
 					// See if Raw bit is set in subencoding, and if so, ignore all other bits
 					if ((subencoding & RAW) != 0) {
-						FillRectangle(new Rectangle(tx, ty, tw, th));
+						FillRectangle(new VncRectangle(tx, ty, tw, th));
 					} else {
 						if ((subencoding & BACKGROUND_SPECIFIED) != 0) {
 							backgroundPixelValue = preader.ReadPixel();
 						}
 
 						// Fill-in background colour
-						FillRectangle(new Rectangle(tx, ty, tw, th), backgroundPixelValue);
+						FillRectangle(new VncRectangle(tx, ty, tw, th), backgroundPixelValue);
 												
 						if ((subencoding & FOREGROUND_SPECIFIED) != 0) {
 							foregroundPixelValue = preader.ReadPixel();
@@ -105,7 +104,7 @@ namespace VncSharp.Encodings
 								sw = ((widthANDheight >> 4) & 0xf) + 1;	// have to add 1 to get width
 								sh = (widthANDheight & 0xf) + 1;		// same for height.
 
-								FillRectangle(new Rectangle(tx + sx, ty + sy, sw, sh), foregroundPixelValue);
+								FillRectangle(new VncRectangle(tx + sx, ty + sy, sw, sh), foregroundPixelValue);
 							}
 						}
 					}

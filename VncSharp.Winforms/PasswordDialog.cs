@@ -21,7 +21,7 @@ using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
 
-namespace VncSharp
+namespace VncSharp.Winforms
 {
 	/// <summary>
 	/// A simple GUI Form for obtaining a user's password.  More elaborate interfaces could be used, but this is the default.

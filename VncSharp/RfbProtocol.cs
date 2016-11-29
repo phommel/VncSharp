@@ -18,11 +18,11 @@
 using System;
 using System.IO;
 using System.Net;
-using System.Drawing;
 using System.Threading;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Security.Cryptography;
+using VncSharp.PlatformIndependentDrawing;
 
 namespace VncSharp
 {
@@ -402,7 +402,7 @@ namespace VncSharp
 		/// </summary>
 		/// <param name="buttonMask">A bitmask indicating which button(s) are pressed.</param>
 		/// <param name="point">The location of the mouse cursor.</param>
-		public void WritePointerEvent(byte buttonMask, Point point)
+		public void WritePointerEvent(byte buttonMask, VncPoint point)
 		{
 			writer.Write(POINTER_EVENT);
 			writer.Write(buttonMask);
@@ -448,9 +448,9 @@ namespace VncSharp
 		/// </summary>
 		/// <param name="rectangle">The geometry of the rectangle that is about to be sent.</param>
 		/// <param name="encoding">The encoding used for this rectangle.</param>
-		public void ReadFramebufferUpdateRectHeader(out Rectangle rectangle, out int encoding)
+		public void ReadFramebufferUpdateRectHeader(out VncRectangle rectangle, out int encoding)
 		{
-			rectangle = new Rectangle();
+			rectangle = new VncRectangle();
 			rectangle.X = (int) reader.ReadUInt16();
 			rectangle.Y = (int) reader.ReadUInt16();
 			rectangle.Width = (int) reader.ReadUInt16();

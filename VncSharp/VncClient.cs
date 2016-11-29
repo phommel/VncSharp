@@ -17,12 +17,11 @@
 
 using System;
 using System.Threading;
-using System.Drawing;
 using System.Diagnostics;
 using System.Security.Cryptography;
-using System.Windows.Forms;
 
 using VncSharp.Encodings;
+using VncSharp.PlatformIndependentDrawing;
 
 namespace VncSharp
 {
@@ -51,8 +50,9 @@ namespace VncSharp
         /// </summary>
         public event EventHandler ServerCutText;
         	
-		public VncClient()
+		public VncClient(Action<VncGuiInvocation> guiinvoker, Action<string> setclipboard)
 		{
+		    GuiInvoker = guiinvoker;
 		}
 
 		/// <summary>
@@ -386,7 +386,7 @@ namespace VncSharp
                             // TODO: consider gathering all update rectangles in a batch and *then* posting the event back to the main thread.
                             for (int i = 0; i < rectangles; ++i) {
                                 // Get the update rectangle's info
-                                Rectangle rectangle;
+                                VncRectangle rectangle;
                                 rfb.ReadFramebufferUpdateRectHeader(out rectangle, out enc);
 
                                 // Build a derived EncodedRectangle type and pull-down all the pixel info
@@ -398,16 +398,17 @@ namespace VncSharp
                                 if (!CheckIfThreadDone() && VncUpdate != null) {
                                     VncEventArgs e = new VncEventArgs(er);
 
-                                    // In order to play nicely with WinForms controls, we do a check here to 
-                                    // see if it is necessary to synchronize this event with the UI thread.
-                                    if (VncUpdate.Target is System.Windows.Forms.Control) {
-                                        Control target = VncUpdate.Target as Control;
-                                        if (target != null)
-                                            target.Invoke(VncUpdate, new object[] { this, e });
-                                    } else {
-                                        // Target is not a WinForms control, so do it on this thread...
-                                        VncUpdate(this, new VncEventArgs(er));
-                                    }
+                                    //// In order to play nicely with WinForms controls, we do a check here to 
+                                    //// see if it is necessary to synchronize this event with the UI thread.
+                                    //if (VncUpdate.Target is System.Windows.Forms.Control) {
+                                    //    Control target = VncUpdate.Target as Control;
+                                    //    if (target != null)
+                                    //        target.Invoke(VncUpdate, new object[] { this, e });
+                                    //} else {
+                                    //    // Target is not a WinForms control, so do it on this thread...
+                                    //    VncUpdate(this, new VncEventArgs(er));
+                                    //}
+                                    GuiInvoker(new VncGuiInvocation(VncUpdate, new object[] {this, e}));
                                 }
                             }
                             break;
@@ -418,7 +419,7 @@ namespace VncSharp
                             if (CheckIfThreadDone())
                                 break;
                             // TODO: This is invasive, should there be a bool property allowing this message to be ignored?
-                            Clipboard.SetDataObject(rfb.ReadServerCutText().Replace("\n", Environment.NewLine), true);
+                            SetClipboard(rfb.ReadServerCutText().Replace("\n", Environment.NewLine));
                             OnServerCutText();
                             break;
                         case RfbProtocol.SET_COLOUR_MAP_ENTRIES:
@@ -435,30 +436,16 @@ namespace VncSharp
 		{
 			// In order to play nicely with WinForms controls, we do a check here to 
 			// see if it is necessary to synchronize this event with the UI thread.
-			if (ConnectionLost != null && 
-				ConnectionLost.Target is System.Windows.Forms.Control) {
-				Control target = ConnectionLost.Target as Control;
-
-				if (target != null)
-					target.Invoke(ConnectionLost, new object[] {this, EventArgs.Empty});
-				else
-					ConnectionLost(this, EventArgs.Empty);
-			}
-		}
+			if (ConnectionLost != null)
+                GuiInvoker(new VncGuiInvocation(ConnectionLost, new object[] { this, EventArgs.Empty }));
+        }
 
 	    protected void OnServerCutText()
         {
             // In order to play nicely with WinForms controls, we do a check here to 
             // see if it is necessary to synchronize this event with the UI thread.
-            if (ServerCutText != null &&
-                ServerCutText.Target is System.Windows.Forms.Control) {
-                Control target = ServerCutText.Target as Control;
-
-                if (target != null)
-                    target.Invoke(ServerCutText, new object[] { this, EventArgs.Empty });
-                else
-                    ServerCutText(this, EventArgs.Empty);
-            }
+            if (ServerCutText != null)
+                GuiInvoker(new VncGuiInvocation(ServerCutText, new object[] { this, EventArgs.Empty }));
         }
 
 // There is no managed way to get a system beep (until Framework v.2.0). So depending on the platform, something external has to be called.
@@ -506,7 +493,7 @@ namespace VncSharp
 		}
 
 		// TODO: This needs to be pushed into the protocol rather than expecting the caller to create the mask.
-		public virtual void WritePointerEvent(byte buttonMask, Point point)
+		public virtual void WritePointerEvent(byte buttonMask, VncPoint point)
 		{
 			try {
 				inputPolicy.WritePointerEvent(buttonMask, point);
@@ -533,5 +520,23 @@ namespace VncSharp
 				OnConnectionLost();
 			}
 		}
+
+	    public Action<VncGuiInvocation> GuiInvoker;
+	    public Action<string> SetClipboard;
 	}
+
+
+    public delegate void VncGuiAction();
+
+    public class VncGuiInvocation
+    {
+        public Delegate GuiAction;
+        public object[] Parameters;
+
+        public VncGuiInvocation(Delegate guiaction, object[] parameters)
+        {
+            GuiAction = guiaction;
+            Parameters = parameters;
+        }
+    }
 }

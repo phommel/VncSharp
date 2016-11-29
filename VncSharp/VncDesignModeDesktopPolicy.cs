@@ -16,8 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Windows.Forms;
-using System.Drawing;
+using VncSharp.PlatformIndependentDrawing;
 
 namespace VncSharp
 {
@@ -26,7 +25,7 @@ namespace VncSharp
 	/// </summary>
 	public sealed class VncDesignModeDesktopPolicy : VncDesktopTransformPolicy
 	{
-        public VncDesignModeDesktopPolicy(RemoteDesktop remoteDesktop) 
+        public VncDesignModeDesktopPolicy(IRemoteDesktop remoteDesktop) 
             : base(null, remoteDesktop)
         {
         }
@@ -37,23 +36,23 @@ namespace VncSharp
             }
         }
 
-        public override Size AutoScrollMinSize {
+        public override VncSize AutoScrollMinSize {
             get {
-                return new Size(608, 427); // just a default for Design graphic. Will get changed once connected.
+                return new VncSize(608, 427); // just a default for Design graphic. Will get changed once connected.
             }
         }
 
-        public override Point UpdateRemotePointer(Point current)
+        public override VncPoint UpdateRemotePointer(VncPoint current)
         {
             throw new NotImplementedException();
         }
 
-        public override Rectangle AdjustUpdateRectangle(Rectangle updateRectangle)
+        public override VncRectangle AdjustUpdateRectangle(VncRectangle updateRectangle)
         {
             throw new NotImplementedException();			
         }
 
-        public override Rectangle RepositionImage(Image desktopImage)
+        public override VncRectangle RepositionImage(IVncImage desktopImage)
         {
             // See if the image needs to be clipped (i.e., it is too big for the 
  			// available space) or centered (i.e., it is too small)
@@ -71,15 +70,15 @@ namespace VncSharp
 				y = remoteDesktop.DisplayRectangle.Y;
 			}
 
-            return new Rectangle(x, y, remoteDesktop.ClientSize.Width, remoteDesktop.ClientSize.Height);
+            return new VncRectangle(x, y, remoteDesktop.ClientSize.Width, remoteDesktop.ClientSize.Height);
         }
 
-        public override Rectangle GetMouseMoveRectangle()
+        public override VncRectangle GetMouseMoveRectangle()
         {
             throw new NotImplementedException();
         }
 
-        public override Point GetMouseMovePoint(Point current)
+        public override VncPoint GetMouseMovePoint(VncPoint current)
         {
             throw new NotImplementedException();
         }

@@ -25,8 +25,9 @@ using System.Drawing.Imaging;
 using System.Drawing.Drawing2D;
 
 using VncSharp.Encodings;
+using VncSharp.PlatformIndependentDrawing;
 
-namespace VncSharp
+namespace VncSharp.Winforms
 {
 	/// <summary>
 	/// Event Handler delegate declaration used by events that signal successful connection with the server.
@@ -54,7 +55,7 @@ namespace VncSharp
 	/// <summary>
 	/// The RemoteDesktop control takes care of all the necessary RFB Protocol and GUI handling, including mouse and keyboard support, as well as requesting and processing screen updates from the remote VNC host.  Most users will choose to use the RemoteDesktop control alone and not use any of the other protocol classes directly.
 	/// </summary>
-	public class RemoteDesktop : Panel
+	public class RemoteDesktop : Panel, IRemoteDesktop
 	{
 		[Description("Raised after a successful call to the Connect() method.")]
 		/// <summary>
@@ -113,7 +114,7 @@ namespace VncSharp
             // Use a simple desktop policy for design mode.  This will be replaced in Connect()
             desktopPolicy = new VncDesignModeDesktopPolicy(this);
             AutoScroll = desktopPolicy.AutoScroll;
-            AutoScrollMinSize = desktopPolicy.AutoScrollMinSize;
+            AutoScrollMinSize = desktopPolicy.AutoScrollMinSize.ToSize();
 
 			// Users of the control can choose to use their own Authentication GetPassword() method via the delegate above.  This is a default only.
 			GetPassword = new AuthenticateDelegate(PasswordDialog.GetPassword);
@@ -186,7 +187,15 @@ namespace VncSharp
             }
         }
 
-        /// <summary>
+	    VncSize IRemoteDesktop.ClientSize => ClientSize.ToVncSize();
+	    VncRectangle IRemoteDesktop.ClientRectangle => ClientRectangle.ToVncRectangle();
+	    VncRectangle IRemoteDesktop.DisplayRectangle => DisplayRectangle.ToVncRectangle();
+
+	    IVncImage IRemoteDesktop.Desktop => Desktop.ToVncImage();
+
+	    VncPoint IRemoteDesktop.AutoScrollPosition => AutoScrollPosition.ToVncPoint();
+
+	    /// <summary>
         /// The image of the remote desktop.
         /// </summary>
         public Image Desktop {
@@ -242,8 +251,8 @@ namespace VncSharp
 		// The VncClient object handles thread marshalling onto the UI thread.
 		protected void VncUpdate(object sender, VncEventArgs e)
 		{
-			e.DesktopUpdater.Draw(desktop);
-            Invalidate(desktopPolicy.AdjustUpdateRectangle(e.DesktopUpdater.UpdateRectangle));
+			e.DesktopUpdater.Draw(desktop.ToVncBitmap());
+            Invalidate(desktopPolicy.AdjustUpdateRectangle(e.DesktopUpdater.UpdateRectangle).ToRectangle());
 
 			if (state == RuntimeState.Connected) {
 				vnc.RequestScreenUpdate(fullScreenRefresh);
@@ -342,7 +351,7 @@ namespace VncSharp
             if (display < 0) throw new ArgumentOutOfRangeException("display", display, "Display number must be a positive integer.");
 
             // Start protocol-level handling and determine whether a password is needed
-            vnc = new VncClient();
+            vnc = new VncClient(GuiInvocation,SetClipboard);
             vnc.ConnectionLost += new EventHandler(VncClientConnectionLost);
             vnc.ServerCutText += new EventHandler(VncServerCutText);
 
@@ -366,7 +375,26 @@ namespace VncSharp
             }
         }
 
-		/// <summary>
+	    public void GuiInvocation(VncGuiInvocation inv)
+	    {
+	        var control = inv.GuiAction.Target as Control;
+	        if (control != null)
+            {
+                control.Invoke(inv.GuiAction,inv.Parameters);
+            }
+            else
+            {
+                // Target is not a WinForms control, so do it on this thread...
+                inv.GuiAction.Method.Invoke(inv.GuiAction.Target, inv.Parameters);
+            }
+	    }
+
+	    public void SetClipboard(string str)
+	    {
+            Clipboard.SetDataObject(str, true);
+        }
+
+	    /// <summary>
 		/// Authenticate with the VNC Host using a user supplied password.
 		/// </summary>
 		/// <exception cref="System.InvalidOperationException">Thrown if the RemoteDesktop control is already Connected.  See <see cref="VncSharp.RemoteDesktop.IsConnected" />.</exception>
@@ -408,7 +436,7 @@ namespace VncSharp
             }
 
             AutoScroll = desktopPolicy.AutoScroll;
-            AutoScrollMinSize = desktopPolicy.AutoScrollMinSize;
+            AutoScrollMinSize = desktopPolicy.AutoScrollMinSize.ToSize();
 
             Invalidate();
         }
@@ -434,7 +462,7 @@ namespace VncSharp
 												   vnc.Framebuffer.DesktopName));
 
             // Refresh scroll properties
-            AutoScrollMinSize = desktopPolicy.AutoScrollMinSize;
+            AutoScrollMinSize = desktopPolicy.AutoScrollMinSize.ToSize();
 
 			// Start getting updates from the remote host (vnc.StartUpdates will begin a worker thread).
 			vnc.VncUpdate += new VncUpdateHandler(VncUpdate);
@@ -486,7 +514,7 @@ namespace VncSharp
 			System.Diagnostics.Debug.Assert(desktop != null, "Can't draw on desktop when null.");
 			// Draw the given message on the local desktop
 			using (Graphics g = Graphics.FromImage(desktop)) {
-				g.FillRectangle(Brushes.Black, vnc.Framebuffer.Rectangle);
+				g.FillRectangle(Brushes.Black, vnc.Framebuffer.Rectangle.ToRectangle());
 
 				StringFormat format = new StringFormat();
 				format.Alignment = StringAlignment.Center;
@@ -597,7 +625,7 @@ namespace VncSharp
 		/// <exception cref="System.InvalidOperationException">Thrown if the RemoteDesktop control is not already in the Connected state.</exception>
 		protected void DrawDesktopImage(Image desktopImage, Graphics g)
 		{
-			g.DrawImage(desktopImage, desktopPolicy.RepositionImage(desktopImage));
+			g.DrawImage(desktopImage, desktopPolicy.RepositionImage(desktopImage.ToVncImage()).ToRectangle());
 		}
 
 		/// <summary>
@@ -662,8 +690,8 @@ namespace VncSharp
 			// Only bother if the control is connected.
 			if (IsConnected) {
 				// See if the mouse pointer is inside the area occupied by the desktop on screen.
-                Rectangle adjusted = desktopPolicy.GetMouseMoveRectangle();
-				if (adjusted.Contains(PointToClient(MousePosition)))
+                var adjusted = desktopPolicy.GetMouseMoveRectangle();
+				if (adjusted.Contains(PointToClient(MousePosition).ToVncPoint()))
 					UpdateRemotePointer();
 			}
 			base.OnMouseMove(mea);
@@ -704,7 +732,7 @@ namespace VncSharp
 					mask += 16;
 				}
 
-				vnc.WritePointerEvent(mask, desktopPolicy.GetMouseMovePoint(current));
+				vnc.WritePointerEvent(mask, desktopPolicy.GetMouseMovePoint(current.ToVncPoint()));
 			}			
 			base.OnMouseWheel(mea);
 		}
@@ -714,14 +742,14 @@ namespace VncSharp
 			// HACK: this check insures that while in DesignMode, no messages are sent to a VNC Host
 			// (i.e., there won't be one--NullReferenceException)			
 			if (!DesignMode && IsConnected) {
-				Point current = PointToClient(MousePosition);
+				var current = PointToClient(MousePosition).ToVncPoint();
 				byte mask = 0;
 
 				if (Control.MouseButtons == MouseButtons.Left)   mask += 1;
 				if (Control.MouseButtons == MouseButtons.Middle) mask += 2;
 				if (Control.MouseButtons == MouseButtons.Right)  mask += 4;
 
-                Point adjusted = desktopPolicy.UpdateRemotePointer(current);
+                var adjusted = desktopPolicy.UpdateRemotePointer(current);
                 if (adjusted.X < 0 || adjusted.Y < 0)
                     throw new Exception();
 

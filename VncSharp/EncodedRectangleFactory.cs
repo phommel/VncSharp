@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Drawing;
 using VncSharp.Encodings;
+using VncSharp.PlatformIndependentDrawing;
 
 namespace VncSharp
 {
@@ -49,7 +49,7 @@ namespace VncSharp
 		/// <param name="rectangle">A Rectangle object defining the bounds of the rectangle to be created</param>
 		/// <param name="encoding">An Integer indicating the encoding type to be used for this rectangle.  Used to determine the type of EncodedRectangle to create.</param>
 		/// <returns></returns>
-		public EncodedRectangle Build(Rectangle rectangle, int encoding)
+		public EncodedRectangle Build(VncRectangle rectangle, int encoding)
 		{
 			EncodedRectangle e = null;
 

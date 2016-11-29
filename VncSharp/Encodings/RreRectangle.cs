@@ -16,8 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
+using VncSharp.PlatformIndependentDrawing;
 
 namespace VncSharp.Encodings
 {
@@ -26,7 +25,7 @@ namespace VncSharp.Encodings
 	/// </summary>
 	public sealed class RreRectangle : EncodedRectangle 
 	{
-		public RreRectangle(RfbProtocol rfb, Framebuffer framebuffer, Rectangle rectangle)
+		public RreRectangle(RfbProtocol rfb, Framebuffer framebuffer, VncRectangle rectangle)
 			: base(rfb, framebuffer, rectangle, RfbProtocol.RRE_ENCODING) 
 		{
 		}
@@ -52,7 +51,7 @@ namespace VncSharp.Encodings
 				h			= (int) rfb.ReadUInt16();
 				
 				// Colour in this sub-rectangle
-				FillRectangle(new Rectangle(x, y, w, h), subRectVal);
+				FillRectangle(new VncRectangle(x, y, w, h), subRectVal);
 			}
 		}
 	}

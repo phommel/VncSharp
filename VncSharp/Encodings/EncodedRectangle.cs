@@ -16,10 +16,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.IO;
+using VncSharp.PlatformIndependentDrawing;
 
 namespace VncSharp.Encodings
 {
@@ -29,11 +28,11 @@ namespace VncSharp.Encodings
 	public abstract class EncodedRectangle : IDesktopUpdater
 	{
 		protected RfbProtocol	rfb;
-		protected Rectangle		rectangle;
+		protected VncRectangle  rectangle;
 		protected Framebuffer	framebuffer;
 		protected PixelReader	preader;
 
-		public EncodedRectangle(RfbProtocol rfb, Framebuffer framebuffer, Rectangle rectangle, int encoding)
+		public EncodedRectangle(RfbProtocol rfb, Framebuffer framebuffer, VncRectangle rectangle, int encoding)
 		{
 			this.rfb = rfb;
 			this.framebuffer = framebuffer;
@@ -69,7 +68,7 @@ namespace VncSharp.Encodings
 		/// <summary>
 		/// Gets the rectangle that needs to be decoded and drawn.
 		/// </summary>
-		public Rectangle UpdateRectangle {
+		public VncRectangle UpdateRectangle {
 			get {
 				return rectangle;
 			}
@@ -84,11 +83,11 @@ namespace VncSharp.Encodings
 		/// After calling Decode() an EncodedRectangle can be drawn to a Bitmap, which is the local representation of the remote desktop.
 		/// </summary>
 		/// <param name="desktop">The image the represents the remote desktop. NOTE: this image will be altered.</param>
-		public unsafe virtual void Draw(Bitmap desktop)
+		public unsafe virtual void Draw(IVncBitmap desktop)
 		{
 			// Lock the bitmap's scan-lines in RAM so we can iterate over them using pointers and update the area
 			// defined in rectangle.
-			BitmapData bmpd = desktop.LockBits(new Rectangle(new Point(0,0), desktop.Size), ImageLockMode.ReadWrite, desktop.PixelFormat);
+			IVncBitmapData bmpd = desktop.LockBits(new VncRectangle(new VncPoint(0,0), desktop.Size));
 
 			try {
 				// For speed I'm using pointers to manipulate the desktop bitmap, which is unsafe.
@@ -124,7 +123,7 @@ namespace VncSharp.Encodings
 		/// </summary>
 		/// <param name="rect">The rectangle to be filled.</param>
 		/// <param name="colour">The colour to use when filling the rectangle.</param>
-		protected void FillRectangle(Rectangle rect, int colour)
+		protected void FillRectangle(VncRectangle rect, int colour)
 		{
 			int ptr = 0;
 			int offset = 0;
@@ -144,7 +143,7 @@ namespace VncSharp.Encodings
 			}
 		}
 
-		protected void FillRectangle(Rectangle rect, int[] tile)
+		protected void FillRectangle(VncRectangle rect, int[] tile)
 		{
 			int ptr = 0;
 			int offset = 0;
@@ -169,7 +168,7 @@ namespace VncSharp.Encodings
 		/// Fills the given Rectangle with pixel values read from the server (i.e., each pixel may have its own value).
 		/// </summary>
 		/// <param name="rect">The rectangle to be filled.</param>
-		protected void FillRectangle(Rectangle rect)
+		protected void FillRectangle(VncRectangle rect)
 		{
 			int ptr = 0;
 			int offset = 0;

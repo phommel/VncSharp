@@ -16,8 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
+using VncSharp.PlatformIndependentDrawing;
 
 namespace VncSharp.Encodings
 {
@@ -26,13 +25,13 @@ namespace VncSharp.Encodings
 	/// </summary>
 	public sealed class CopyRectRectangle : EncodedRectangle 
 	{
-		public CopyRectRectangle(RfbProtocol rfb, Framebuffer framebuffer, Rectangle rectangle)
+		public CopyRectRectangle(RfbProtocol rfb, Framebuffer framebuffer, VncRectangle rectangle)
 			: base(rfb, framebuffer, rectangle, RfbProtocol.COPYRECT_ENCODING) 
 		{
 		}
 
-		// CopyRect Source Point (x,y) from which to copy pixels in Draw
-		Point source;
+        // CopyRect Source Point (x,y) from which to copy pixels in Draw
+        VncPoint source;
 
 		/// <summary>
 		/// Decodes a CopyRect encoded rectangle.
@@ -40,17 +39,15 @@ namespace VncSharp.Encodings
 		public override void Decode()
 		{
 			// Read the source point from which to begin copying pixels
-			source = new Point();
+			source = new VncPoint();
 			source.X = (int) rfb.ReadUInt16();
 			source.Y = (int) rfb.ReadUInt16();
 		}
 
-		public unsafe override void Draw(Bitmap desktop)
+		public unsafe override void Draw(IVncBitmap desktop)
 		{
 			// Given a source area, copy this region to the point specified by destination
-			BitmapData bmpd = desktop.LockBits(new Rectangle(new Point(0,0), desktop.Size),
-											   ImageLockMode.ReadWrite, 
-											   desktop.PixelFormat);
+			IVncBitmapData bmpd = desktop.LockBits(new VncRectangle(new VncPoint(0,0), desktop.Size));
 
 			
 			// Avoid exception if window is dragged bottom of screen

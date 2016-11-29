@@ -16,8 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Windows.Forms;
-using System.Drawing;
+using VncSharp.PlatformIndependentDrawing;
 
 namespace VncSharp
 {
@@ -26,8 +25,7 @@ namespace VncSharp
 	/// </summary>
 	public sealed class VncClippedDesktopPolicy : VncDesktopTransformPolicy
 	{
-        public VncClippedDesktopPolicy(VncClient vnc,
-                                       RemoteDesktop remoteDesktop) 
+        public VncClippedDesktopPolicy(VncClient vnc, IRemoteDesktop remoteDesktop) 
             : base(vnc, remoteDesktop)
         {
         }
@@ -38,19 +36,19 @@ namespace VncSharp
             }
         }
 
-        public override Size AutoScrollMinSize {
+        public override VncSize AutoScrollMinSize {
             get {
                 if (vnc != null && vnc.Framebuffer != null) {
-                    return new Size(vnc.Framebuffer.Width, vnc.Framebuffer.Height);
+                    return new VncSize(vnc.Framebuffer.Width, vnc.Framebuffer.Height);
                 } else {
-                    return new Size(100, 100);
+                    return new VncSize(100, 100);
                 }
             }
         }
 
-        public override Point UpdateRemotePointer(Point current)
+        public override VncPoint UpdateRemotePointer(VncPoint current)
         {
-            Point adjusted = new Point();
+            VncPoint adjusted = new VncPoint();
 			if (remoteDesktop.ClientSize.Width > remoteDesktop.Desktop.Size.Width) {
 			    adjusted.X = current.X - ((remoteDesktop.ClientRectangle.Width - remoteDesktop.Desktop.Width) / 2);
 			} else {
@@ -66,7 +64,7 @@ namespace VncSharp
 			return adjusted;
         }
 
-        public override Rectangle AdjustUpdateRectangle(Rectangle updateRectangle)
+        public override VncRectangle AdjustUpdateRectangle(VncRectangle updateRectangle)
         {
 			int x, y;
 			
@@ -82,10 +80,10 @@ namespace VncSharp
 				y = updateRectangle.Y + remoteDesktop.AutoScrollPosition.Y;
 			}
 
-			return new Rectangle(x, y, updateRectangle.Width, updateRectangle.Height);
+			return new VncRectangle(x, y, updateRectangle.Width, updateRectangle.Height);
         }
 
-        public override Rectangle RepositionImage(Image desktopImage)
+        public override VncRectangle RepositionImage(IVncImage desktopImage)
         {
             // See if the image needs to be clipped (i.e., it is too big for the 
  			// available space) or centered (i.e., it is too small)
@@ -103,12 +101,12 @@ namespace VncSharp
 				y = remoteDesktop.DisplayRectangle.Y;
 			}
 
-            return new Rectangle(x, y, desktopImage.Width, desktopImage.Height);
+            return new VncRectangle(x, y, desktopImage.Width, desktopImage.Height);
         }
 
-        public override Rectangle GetMouseMoveRectangle()
+        public override VncRectangle GetMouseMoveRectangle()
         {
-			Rectangle desktopRect = vnc.Framebuffer.Rectangle;
+			VncRectangle desktopRect = vnc.Framebuffer.Rectangle;
 
 			if (remoteDesktop.ClientSize.Width > remoteDesktop.Desktop.Size.Width) {
 				desktopRect.X = (remoteDesktop.ClientRectangle.Width - remoteDesktop.Desktop.Width) / 2;
@@ -121,7 +119,7 @@ namespace VncSharp
             return desktopRect;
         }
 
-        public override Point GetMouseMovePoint(Point current)
+        public override VncPoint GetMouseMovePoint(VncPoint current)
         {
             return current;
         }

@@ -16,8 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
+using VncSharp.PlatformIndependentDrawing;
 
 // FIXME: I can't understand why yet, but under the Xvnc server in Unix (v. 3.3.7), this doesn't work.  
 // Everything is fine using the Windows server!?
@@ -29,7 +28,7 @@ namespace VncSharp.Encodings
 	/// </summary>
 	public sealed class CoRreRectangle : EncodedRectangle 
 	{
-		public CoRreRectangle(RfbProtocol rfb, Framebuffer framebuffer, Rectangle rectangle) : base(rfb, framebuffer, rectangle, RfbProtocol.CORRE_ENCODING)
+		public CoRreRectangle(RfbProtocol rfb, Framebuffer framebuffer, VncRectangle rectangle) : base(rfb, framebuffer, rectangle, RfbProtocol.CORRE_ENCODING)
 		{
 		}
 
@@ -57,7 +56,7 @@ namespace VncSharp.Encodings
 				h			= (int) rfb.ReadByte();
 				
 				// Colour in this sub-rectangle with the colour provided.
-				FillRectangle(new Rectangle(x, y, w, h), subRectVal);
+				FillRectangle(new VncRectangle(x, y, w, h), subRectVal);
 			}
 		}
 	}

@@ -16,8 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Windows.Forms;
-using System.Drawing;
+using VncSharp.PlatformIndependentDrawing;
 
 namespace VncSharp
 {
@@ -26,21 +25,21 @@ namespace VncSharp
 	/// </summary>
 	public sealed class VncScaledDesktopPolicy : VncDesktopTransformPolicy
 	{
-        public VncScaledDesktopPolicy(VncClient vnc, RemoteDesktop remoteDesktop) 
+        public VncScaledDesktopPolicy(VncClient vnc, IRemoteDesktop remoteDesktop) 
             : base(vnc, remoteDesktop)
         {
         }
 
-        public override Size AutoScrollMinSize {
+        public override VncSize AutoScrollMinSize {
             get {
-                return new Size(100, 100);
+                return new VncSize(100, 100);
             }
         }
 
-        public override Rectangle AdjustUpdateRectangle(Rectangle updateRectangle)
+        public override VncRectangle AdjustUpdateRectangle(VncRectangle updateRectangle)
         {
-            Size scaledSize = GetScaledSize(remoteDesktop.ClientRectangle.Size);
-            Rectangle adjusted = new Rectangle(AdjusteNormalToScaled(updateRectangle.X) + ((remoteDesktop.ClientRectangle.Width - scaledSize.Width) / 2),
+            VncSize scaledSize = GetScaledSize(remoteDesktop.ClientRectangle.Size);
+            VncRectangle adjusted = new VncRectangle(AdjusteNormalToScaled(updateRectangle.X) + ((remoteDesktop.ClientRectangle.Width - scaledSize.Width) / 2),
                                                AdjusteNormalToScaled(updateRectangle.Y) + ((remoteDesktop.ClientRectangle.Height - scaledSize.Height) / 2),
                                                AdjusteNormalToScaled(updateRectangle.Width),
                                                AdjusteNormalToScaled(updateRectangle.Height));
@@ -48,35 +47,35 @@ namespace VncSharp
             return adjusted;
         }
 
-        public override Rectangle RepositionImage(Image desktopImage)
+        public override VncRectangle RepositionImage(IVncImage desktopImage)
         {
             return GetScaledRectangle(remoteDesktop.ClientRectangle);
         }
 
-        public override Point UpdateRemotePointer(Point current)
+        public override VncPoint UpdateRemotePointer(VncPoint current)
         {
             return GetScaledMouse(current);
         }
 
-        public override Rectangle GetMouseMoveRectangle()
+        public override VncRectangle GetMouseMoveRectangle()
         {
             return GetScaledRectangle(remoteDesktop.ClientRectangle);
         }
 
-        public override Point GetMouseMovePoint(Point current)
+        public override VncPoint GetMouseMovePoint(VncPoint current)
         {
             return GetScaledMouse(current);
         }
 
-        private Size GetScaledSize(Size s)
+        private VncSize GetScaledSize(VncSize s)
 		{
             if (vnc == null)
-                return new Size(remoteDesktop.Width, remoteDesktop.Height);
+                return new VncSize(remoteDesktop.Width, remoteDesktop.Height);
 
 			if (((double)s.Width / vnc.Framebuffer.Width) <= ((double)s.Height / vnc.Framebuffer.Height)) {
-				return new Size(s.Width, (int)((double)s.Width / vnc.Framebuffer.Width * vnc.Framebuffer.Height));
+				return new VncSize(s.Width, (int)((double)s.Width / vnc.Framebuffer.Width * vnc.Framebuffer.Height));
 			} else {
-				return new Size((int)((double)s.Height / vnc.Framebuffer.Height * vnc.Framebuffer.Width), s.Height);
+				return new VncSize((int)((double)s.Height / vnc.Framebuffer.Height * vnc.Framebuffer.Width), s.Height);
 			}
 		}
 
@@ -91,18 +90,18 @@ namespace VncSharp
 			}
 		}
 
-        private Point GetScaledMouse(Point src)
+        private VncPoint GetScaledMouse(VncPoint src)
 		{
-            Size scaledSize = GetScaledSize(remoteDesktop.ClientRectangle.Size);
+            VncSize scaledSize = GetScaledSize(remoteDesktop.ClientRectangle.Size);
 			src.X = AdjusteScaledToNormal(src.X - ((remoteDesktop.ClientRectangle.Width - scaledSize.Width) / 2));
 			src.Y = AdjusteScaledToNormal(src.Y - ((remoteDesktop.ClientRectangle.Height - scaledSize.Height) / 2));
             return src;
         }
 
-		private Rectangle GetScaledRectangle(Rectangle rect)
+		private VncRectangle GetScaledRectangle(VncRectangle rect)
 		{
-			Size scaledSize = GetScaledSize(rect.Size);
-			return new Rectangle((rect.Width - scaledSize.Width) / 2,
+			VncSize scaledSize = GetScaledSize(rect.Size);
+			return new VncRectangle((rect.Width - scaledSize.Width) / 2,
                                  (rect.Height - scaledSize.Height) / 2, 
                                  scaledSize.Width, 
                                  scaledSize.Height);

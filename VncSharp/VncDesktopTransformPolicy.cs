@@ -16,8 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Windows.Forms;
-using System.Drawing;
+using VncSharp.PlatformIndependentDrawing;
 
 namespace VncSharp
 {
@@ -27,10 +26,9 @@ namespace VncSharp
 	public abstract class VncDesktopTransformPolicy
 	{
         protected VncClient vnc;
-        protected RemoteDesktop remoteDesktop;
+        protected IRemoteDesktop remoteDesktop;
 
-        public VncDesktopTransformPolicy(VncClient vnc,
-                                         RemoteDesktop remoteDesktop)
+        public VncDesktopTransformPolicy(VncClient vnc, IRemoteDesktop remoteDesktop)
         {
             this.vnc = vnc;
             this.remoteDesktop = remoteDesktop;
@@ -44,16 +42,16 @@ namespace VncSharp
             }
         }
 
-        public abstract Size AutoScrollMinSize { get; }
+        public abstract VncSize AutoScrollMinSize { get; }
 
-        public abstract Rectangle AdjustUpdateRectangle(Rectangle updateRectangle);
+        public abstract VncRectangle AdjustUpdateRectangle(VncRectangle updateRectangle);
 
-        public abstract Rectangle RepositionImage(Image desktopImage);
+        public abstract VncRectangle RepositionImage(IVncImage desktopImage);
 
-        public abstract Rectangle GetMouseMoveRectangle();
+        public abstract VncRectangle GetMouseMoveRectangle();
 
-        public abstract Point GetMouseMovePoint(Point current);
+        public abstract VncPoint GetMouseMovePoint(VncPoint current);
 
-        public abstract Point UpdateRemotePointer(Point current);
+        public abstract VncPoint UpdateRemotePointer(VncPoint current);
     }
 }

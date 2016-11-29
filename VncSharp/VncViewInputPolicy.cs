@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Drawing;
 using System.Diagnostics;
+using VncSharp.PlatformIndependentDrawing;
 
 namespace VncSharp
 {
@@ -35,7 +35,7 @@ namespace VncSharp
 		{
 		}
 
-		public void WritePointerEvent(byte buttonMask, Point point)
+		public void WritePointerEvent(byte buttonMask, VncPoint point)
 		{
 		}
 	}

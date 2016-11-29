@@ -17,7 +17,7 @@
 
 using System;
 using System.Diagnostics;
-using System.Drawing;
+using VncSharp.PlatformIndependentDrawing;
 
 namespace VncSharp
 {
@@ -41,7 +41,7 @@ namespace VncSharp
 			rfb.WriteKeyEvent(keysym, pressed);
 		}
 
-		public void WritePointerEvent(byte buttonMask, Point point)
+		public void WritePointerEvent(byte buttonMask, VncPoint point)
 		{
 			rfb.WritePointerEvent(buttonMask, point);
 		}

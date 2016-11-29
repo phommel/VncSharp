@@ -16,8 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
+using VncSharp.PlatformIndependentDrawing;
 
 namespace VncSharp.Encodings
 {
@@ -26,7 +25,7 @@ namespace VncSharp.Encodings
 	/// </summary>
 	public sealed class RawRectangle : EncodedRectangle
 	{
-		public RawRectangle(RfbProtocol rfb, Framebuffer framebuffer, Rectangle rectangle)
+		public RawRectangle(RfbProtocol rfb, Framebuffer framebuffer, VncRectangle rectangle)
 			: base(rfb, framebuffer, rectangle, RfbProtocol.RAW_ENCODING)
 		{
 		}

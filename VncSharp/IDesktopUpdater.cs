@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Drawing;
+using VncSharp.PlatformIndependentDrawing;
 
 namespace VncSharp
 {
@@ -29,12 +29,12 @@ namespace VncSharp
 		/// Given a desktop Bitmap that is a local representation of the remote desktop, updates sent by the server are drawn into the area specifed by UpdateRectangle.
 		/// </summary>
 		/// <param name="desktop">The desktop Bitmap on which updates should be drawn.</param>
-		void Draw(Bitmap desktop);
+		void Draw(IVncBitmap desktop);
 		
 		/// <summary>
 		/// The region of the desktop Bitmap that needs to be re-drawn.
 		/// </summary>
-		Rectangle UpdateRectangle {
+		VncRectangle UpdateRectangle {
 			get;
 		}
 	}
