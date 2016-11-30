@@ -23,7 +23,7 @@ using System.Windows.Forms;
 using System.ComponentModel;
 using System.Drawing.Imaging;
 using System.Drawing.Drawing2D;
-
+using System.IO;
 using VncSharp.Encodings;
 using VncSharp.PlatformIndependentDrawing;
 
@@ -109,8 +109,9 @@ namespace VncSharp.Winforms
 					 true);
 
 			// Show a screenshot of a Windows desktop from the manifest and cache to be used when painting in design mode
-			designModeDesktop = Image.FromStream(Assembly.GetAssembly(GetType()).GetManifestResourceStream("VncSharp.Resources.screenshot.png"));
-			
+			//designModeDesktop = Image.FromStream(Assembly.GetAssembly(GetType()).GetManifestResourceStream("VncSharp.Winforms.Properties.Resources.screenshot.png"));
+		    designModeDesktop = Properties.Resources.screenshot;
+
             // Use a simple desktop policy for design mode.  This will be replaced in Connect()
             desktopPolicy = new VncDesignModeDesktopPolicy(this);
             AutoScroll = desktopPolicy.AutoScroll;
@@ -477,8 +478,8 @@ namespace VncSharp.Winforms
 			switch (state) {
 				case RuntimeState.Connected:
 					// Change the cursor to the "vnc" custor--a see-through dot
-					Cursor = new Cursor(GetType(), "Resources.vnccursor.cur");
-					break;
+                    Cursor = new Cursor(new MemoryStream(Properties.Resources.vnccursor));
+                    break;
 				// All other states should use the normal cursor.
 				case RuntimeState.Disconnected:
 				default:	
